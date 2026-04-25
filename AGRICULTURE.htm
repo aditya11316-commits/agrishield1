@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriShield Pioneer OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+:root {
+  --emerald: rgba(5,30,15,0.95);
+  --neon: #39FF14;
+  --neon-dim: rgba(57,255,20,0.13);
+  --danger: #ff3131;
+  --sky: #0dcaf0;
+  --gold: #ffc107;
+  --glass: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.11);
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--font-display);cursor:none}
+
+/* ── CUSTOM CURSOR ── */
+#cursor-dot{position:fixed;width:8px;height:8px;background:var(--neon);border-radius:50%;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);box-shadow:0 0 10px var(--neon);transition:background 0.2s,transform 0.08s}
+#cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(57,255,20,0.45);border-radius:50%;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:width 0.22s,height 0.22s,border-color 0.22s}
+#cursor-ring.hover{width:54px;height:54px;border-color:var(--neon);border-width:2px}
+.trail-dot{position:fixed;border-radius:50%;background:var(--neon);pointer-events:none;transform:translate(-50%,-50%);animation:trail-fade 0.55s ease forwards;z-index:99997}
+@keyframes trail-fade{from{opacity:0.45;width:5px;height:5px}to{opacity:0;width:1px;height:1px}}
+
+/* ── BG ── */
+.bg-layer{position:fixed;inset:0;z-index:0;background:linear-gradient(rgba(0,0,0,0.83),rgba(0,0,0,0.83)),url('https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat}
+
+/* ── RGB STRIP ── */
+.rgb-strip{position:fixed;top:0;left:0;right:0;height:3px;z-index:9999;background:linear-gradient(90deg,#0aFFd6,#00FF59,#0f0,#0ff,#00f,#054b33,#042813);background-size:200% auto;animation:rgb-slide 4s linear infinite}
+@keyframes rgb-slide{to{background-position:200% center}}
+
+/* ── NAVBAR ── */
+.top-nav{position:fixed;top:3px;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:11px 34px;background:rgba(0,0,0,0.68);border-bottom:1px solid var(--glass-border);backdrop-filter:blur(20px)}
+.logo{font-family:var(--font-display);font-size:1.45rem;font-weight:800;letter-spacing:4px;color:var(--neon);text-shadow:0 0 18px var(--neon);animation:breathe 4s ease-in-out infinite alternate}
+.logo span{color:#fff}
+@keyframes breathe{from{opacity:0.8}to{opacity:1;text-shadow:0 0 28px var(--neon)}}
+.nav-right{display:flex;align-items:center;gap:12px}
+.session-id{font-family:var(--font-mono);font-size:0.63rem;color:var(--sky);letter-spacing:1px}
+.sync-badge{font-family:var(--font-mono);font-size:0.58rem;color:var(--neon);border:1px solid var(--neon);padding:2px 7px;border-radius:4px;letter-spacing:1px}
+.lang-toggle{display:flex;border:1px solid var(--glass-border);border-radius:8px;overflow:hidden}
+.lang-btn{padding:5px 11px;font-family:var(--font-mono);font-size:0.6rem;letter-spacing:1px;background:transparent;color:rgba(255,255,255,0.38);border:none;cursor:pointer;transition:all 0.2s}
+.lang-btn.active{background:var(--neon-dim);color:var(--neon);font-weight:700}
+
+/* ── ONBOARDING ── */
+#onboarding{position:fixed;inset:0;z-index:20000;background:#000;display:flex;align-items:center;justify-content:center;transition:transform 1.2s cubic-bezier(0.8,0,0.2,1)}
+.onboarding-card{width:460px;max-width:95vw;background:var(--emerald);padding:42px 38px;border-radius:30px;border:1px solid var(--neon);box-shadow:0 0 80px rgba(57,255,20,0.16)}
+.brand-title{font-size:1.9rem;font-weight:800;letter-spacing:5px;text-align:center;margin-bottom:4px;color:var(--neon);text-shadow:0 0 14px var(--neon)}
+.brand-title span{color:#fff}
+.brand-sub{text-align:center;font-family:var(--font-mono);font-size:0.58rem;color:rgba(255,255,255,0.32);letter-spacing:2px;margin-bottom:26px}
+.ob-lang-row{display:flex;gap:9px;margin-bottom:22px}
+.ob-lang-btn{flex:1;padding:8px;border-radius:8px;font-family:var(--font-mono);font-size:0.65rem;letter-spacing:1px;border:1px solid var(--glass-border);background:transparent;color:rgba(255,255,255,0.38);cursor:pointer;transition:all 0.2s}
+.ob-lang-btn.active{background:var(--neon-dim);color:var(--neon);border-color:var(--neon)}
+.field-group{margin-bottom:18px}
+.field-label{display:block;margin-bottom:5px;font-family:var(--font-mono);font-size:0.6rem;color:var(--neon);letter-spacing:2px;font-weight:700}
+.field-input{width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(57,255,20,0.32);border-radius:10px;padding:10px 14px;color:#fff;font-family:var(--font-display);font-size:0.9rem;outline:none;transition:border-color 0.3s,box-shadow 0.3s}
+.field-input:focus{border-color:var(--neon);box-shadow:0 0 13px rgba(57,255,20,0.18)}
+.field-input::placeholder{color:rgba(255,255,255,0.26)}
+.btn-launch{width:100%;margin-top:6px;padding:12px;border-radius:11px;background:transparent;border:1.5px solid var(--neon);color:var(--neon);font-family:var(--font-mono);font-size:0.8rem;font-weight:700;letter-spacing:3px;cursor:pointer;transition:background 0.3s,box-shadow 0.3s}
+.btn-launch:hover{background:var(--neon-dim);box-shadow:0 0 22px rgba(57,255,20,0.28)}
+
+/* ── SPATIAL HUB ── */
+.spatial-hub{position:relative;z-index:1;display:flex;gap:13px;height:100vh;padding:80px 18px 48px}
+.monolith{flex:1;position:relative;overflow:hidden;border-radius:26px;background:var(--emerald);border:1px solid var(--glass-border);backdrop-filter:blur(20px);padding:30px 26px;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer;transition:flex 0.7s cubic-bezier(0.19,1,0.22,1),border-color 0.4s,box-shadow 0.4s}
+.monolith::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 110%,rgba(57,255,20,0.08),transparent 65%);opacity:0;transition:opacity 0.4s}
+.monolith:hover::before{opacity:1}
+.monolith:hover{flex:2.5;border-color:var(--neon);box-shadow:0 0 55px rgba(57,255,20,0.2)}
+.monolith .m-icon{position:absolute;top:30px;left:26px;font-size:3.8rem;opacity:0.12;transition:opacity 0.4s,transform 0.4s}
+.monolith:hover .m-icon{opacity:1;transform:scale(1.1)}
+.monolith .m-title{font-size:2.5rem;font-weight:800;letter-spacing:2px;margin:0 0 6px}
+.monolith .m-sub{font-size:0.76rem;color:rgba(255,255,255,0.42);line-height:1.5}
+.ripple-fx{position:absolute;border-radius:50%;background:rgba(57,255,20,0.18);transform:scale(0);animation:ripple-anim 0.65s linear;pointer-events:none}
+@keyframes ripple-anim{to{transform:scale(4.5);opacity:0}}
+
+/* ── FULL VIEWS ── */
+.full-view{position:fixed;inset:0;z-index:15000;display:none;overflow-y:auto;padding:88px 42px 58px;background:rgba(0,0,0,0.97);backdrop-filter:blur(40px)}
+.close-btn{position:fixed;top:24px;right:32px;z-index:16000;font-size:1.5rem;color:var(--neon);cursor:pointer;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--neon);transition:background 0.3s,transform 0.25s}
+.close-btn:hover{background:var(--neon-dim);transform:rotate(90deg)}
+
+/* ── GLASS WIDGET ── */
+.glass-widget{background:var(--glass);border:1px solid var(--glass-border);border-radius:20px;padding:24px}
+.widget-title{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:2px;margin-bottom:16px}
+
+/* ── HEALTH RING ── */
+.health-ring{width:115px;height:115px;border-radius:50%;border:7px solid var(--neon);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 26px var(--neon),inset 0 0 16px rgba(57,255,20,0.09);margin:0 auto 9px}
+.health-ring .score{font-size:1.8rem;font-weight:800;line-height:1}
+.health-ring .score-max{font-family:var(--font-mono);font-size:0.6rem;color:rgba(255,255,255,0.45)}
+.health-label{text-align:center;font-family:var(--font-mono);font-size:0.6rem;color:var(--neon);letter-spacing:2px}
+
+/* ── AI ADVISOR ── */
+.advisor-card{display:flex;align-items:flex-start;gap:16px;background:var(--neon-dim);border-left:4px solid var(--neon);border-radius:14px;padding:18px}
+.advisor-avatar{font-size:2.6rem;flex-shrink:0}
+.advisor-title{font-family:var(--font-mono);font-size:0.64rem;color:var(--neon);letter-spacing:2px;margin-bottom:6px}
+.advisor-msg{font-size:0.84rem;line-height:1.6;color:rgba(255,255,255,0.8)}
+.btn-listen{margin-left:8px;padding:2px 9px;font-size:0.62rem;border-radius:20px;border:1px solid rgba(255,255,255,0.28);background:transparent;color:#fff;cursor:pointer;transition:border-color 0.3s}
+.btn-listen:hover{border-color:var(--neon);color:var(--neon)}
+
+/* ── WEATHER ── */
+.weather-temp{font-size:2.2rem;font-weight:800;line-height:1}
+.weather-desc{font-family:var(--font-mono);font-size:0.64rem;color:var(--sky);letter-spacing:1px}
+.bar-track{height:7px;background:rgba(255,255,255,0.08);border-radius:20px;margin-top:5px}
+.bar-fill{height:100%;border-radius:20px;background:var(--sky)}
+
+/* ── ALERTS ── */
+.alert-flash{border:1px solid var(--danger);border-radius:12px;padding:10px 13px;margin-bottom:13px;animation:flash 1.3s ease-in-out infinite alternate}
+@keyframes flash{from{opacity:1}to{opacity:0.5}}
+.alert-flash .alert-title{font-family:var(--font-mono);font-size:0.63rem;color:var(--danger);letter-spacing:1px;margin-bottom:2px}
+.alert-flash .alert-sub{font-size:0.74rem;color:rgba(255,255,255,0.5)}
+
+/* ── INPUT TAGS ── */
+.input-tags{display:flex;gap:7px}
+.input-tag{flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:9px;padding:8px;text-align:center}
+.input-tag .tag-label{font-family:var(--font-mono);font-size:0.56rem;color:rgba(255,255,255,0.35);letter-spacing:1px}
+.input-tag .tag-value{font-weight:700;font-size:0.85rem;margin-top:2px}
+
+/* ── PROFIT ── */
+.profit-row{display:flex;justify-content:space-between;margin-top:16px}
+.profit-cell .p-label{font-family:var(--font-mono);font-size:0.56rem;color:rgba(255,255,255,0.35);letter-spacing:1px}
+.profit-cell .p-value{font-size:1.3rem;font-weight:800;margin-top:3px}
+.profit-cell .p-value.positive{color:var(--neon)}
+
+/* ── GEMINI AI PANEL ── */
+.gemini-panel{background:rgba(0,0,0,0.5);border:1px solid rgba(57,255,20,0.22);border-radius:18px;padding:18px;margin-top:18px}
+.gemini-header{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.gemini-dot{width:7px;height:7px;border-radius:50%;background:var(--neon);box-shadow:0 0 7px var(--neon);animation:pulse-dot 1.5s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(0.65)}}
+.gemini-label{font-family:var(--font-mono);font-size:0.58rem;color:var(--neon);letter-spacing:2px}
+.gemini-messages{height:145px;overflow-y:auto;margin-bottom:9px;display:flex;flex-direction:column;gap:7px;scrollbar-width:thin;scrollbar-color:rgba(57,255,20,0.25) transparent}
+.g-msg{font-size:0.76rem;line-height:1.55;padding:7px 11px;border-radius:10px}
+.g-msg.user{background:rgba(57,255,20,0.09);border:1px solid rgba(57,255,20,0.18);color:#fff;align-self:flex-end;max-width:84%}
+.g-msg.ai{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);color:rgba(255,255,255,0.78);align-self:flex-start;max-width:90%}
+.g-msg.typing{color:rgba(255,255,255,0.35);font-style:italic}
+.gemini-input-row{display:flex;gap:7px}
+.gemini-input{flex:1;background:rgba(0,0,0,0.4);border:1px solid rgba(57,255,20,0.22);border-radius:8px;padding:7px 11px;color:#fff;font-family:var(--font-display);font-size:0.76rem;outline:none}
+.gemini-input::placeholder{color:rgba(255,255,255,0.22)}
+.gemini-input:focus{border-color:rgba(57,255,20,0.55)}
+.gemini-send{padding:7px 13px;background:var(--neon-dim);border:1px solid var(--neon);border-radius:8px;color:var(--neon);font-family:var(--font-mono);font-size:0.58rem;cursor:pointer;transition:background 0.2s;white-space:nowrap}
+.gemini-send:hover{background:rgba(57,255,20,0.22)}
+
+/* ── FINANCE ── */
+.section-title{font-size:1.9rem;font-weight:800;margin-bottom:26px}
+.data-table{width:100%;border-collapse:collapse;margin-top:12px}
+.data-table thead tr{font-family:var(--font-mono);font-size:0.6rem;color:rgba(255,255,255,0.35);letter-spacing:2px;border-bottom:1px solid var(--glass-border)}
+.data-table thead th{padding:8px 10px;font-weight:400;text-align:left}
+.data-table tbody tr{border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.2s}
+.data-table tbody tr:hover{background:rgba(255,255,255,0.04)}
+.data-table tbody td{padding:11px 10px;font-size:0.82rem}
+.data-table .row-highlight td{color:var(--neon)}
+.btn-table{padding:4px 11px;border-radius:7px;font-size:0.65rem;font-weight:700;border:1px solid var(--neon);background:transparent;color:var(--neon);cursor:pointer;transition:background 0.3s}
+.btn-table:hover{background:var(--neon-dim)}
+.btn-table.dark{border-color:rgba(255,255,255,0.25);color:#fff}
+.btn-table.dark:hover{border-color:var(--neon);color:var(--neon)}
+.status-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:9px;background:rgba(255,255,255,0.04);margin-bottom:8px;font-size:0.81rem}
+.status-badge{font-family:var(--font-mono);font-size:0.58rem;font-weight:700;letter-spacing:1px;padding:2px 8px;border-radius:20px}
+.status-badge.green{background:rgba(57,255,20,0.12);color:var(--neon)}
+.status-badge.blue{background:rgba(13,202,240,0.12);color:var(--sky)}
+.status-badge.orange{background:rgba(255,193,7,0.12);color:var(--gold)}
+
+/* ── MINI STAT CARDS ── */
+.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:18px}
+.mini-stat{background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);border-radius:13px;padding:13px;text-align:center}
+.mini-stat .ms-val{font-size:1.25rem;font-weight:800;margin-bottom:3px}
+.mini-stat .ms-label{font-family:var(--font-mono);font-size:0.52rem;color:rgba(255,255,255,0.32);letter-spacing:1px}
+
+/* ── EMI CALCULATOR ── */
+.emi-calc{background:rgba(0,0,0,0.32);border:1px solid rgba(255,193,7,0.18);border-radius:15px;padding:16px;margin-top:14px}
+.emi-calc .emi-title{font-family:var(--font-mono);font-size:0.6rem;color:var(--gold);letter-spacing:2px;margin-bottom:11px}
+.emi-row{display:flex;gap:9px;align-items:flex-end}
+.emi-field{flex:1}
+.emi-field label{font-family:var(--font-mono);font-size:0.54rem;color:rgba(255,255,255,0.35);letter-spacing:1px;display:block;margin-bottom:4px}
+.emi-field input{width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(255,193,7,0.22);border-radius:7px;padding:6px 9px;color:#fff;font-size:0.77rem;outline:none}
+.emi-field input:focus{border-color:var(--gold)}
+.emi-calc-btn{padding:6px 12px;background:rgba(255,193,7,0.09);border:1px solid var(--gold);border-radius:7px;color:var(--gold);font-family:var(--font-mono);font-size:0.58rem;cursor:pointer;white-space:nowrap;transition:background 0.2s}
+.emi-calc-btn:hover{background:rgba(255,193,7,0.18)}
+.emi-result{margin-top:9px;font-family:var(--font-mono);font-size:0.7rem;color:var(--gold);text-align:center;min-height:16px}
+
+/* ── VOICE PAYMENT ── */
+.voice-panel{text-align:center}
+.voice-sub{font-size:0.74rem;color:rgba(255,255,255,0.42);line-height:1.65;margin-bottom:16px}
+.btn-voice{width:100%;padding:13px;border-radius:12px;background:transparent;border:1.5px solid var(--sky);color:var(--sky);font-family:var(--font-mono);font-size:0.73rem;letter-spacing:2px;cursor:pointer;transition:background 0.3s,box-shadow 0.3s}
+.btn-voice:hover{background:rgba(13,202,240,0.09);box-shadow:0 0 16px rgba(13,202,240,0.15)}
+.btn-voice.listening{border-color:var(--danger);color:var(--danger);background:rgba(255,49,49,0.09);animation:listening-pulse 1s ease-in-out infinite alternate}
+@keyframes listening-pulse{from{box-shadow:0 0 0 rgba(255,49,49,0.3)}to{box-shadow:0 0 20px rgba(255,49,49,0.4)}}
+.voice-result{margin-top:12px;padding:12px;border-radius:11px;background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);font-size:0.78rem;color:rgba(255,255,255,0.5);min-height:62px;text-align:left}
+.voice-result .transcript{font-style:italic;font-size:0.68rem;margin-bottom:6px;color:rgba(255,255,255,0.3)}
+.voice-result .pay-success{color:var(--neon);font-weight:700;font-family:var(--font-mono);font-size:0.73rem;margin-bottom:3px}
+.voice-result .pay-error{color:var(--danger);font-size:0.73rem}
+
+/* ── MARKET ── */
+.mandi-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+.mandi-row:last-child{border-bottom:none}
+.mandi-name{font-size:0.86rem;color:rgba(255,255,255,0.68)}
+.mandi-price{font-size:1.12rem;font-weight:800}
+.mandi-price.best{color:var(--neon)}
+.mandi-dist{font-family:var(--font-mono);font-size:0.56rem;color:rgba(255,255,255,0.26);margin-top:2px}
+.escrow-desc{font-size:0.77rem;color:rgba(255,255,255,0.42);margin-bottom:20px;line-height:1.6}
+.btn-neon-full{width:100%;padding:13px;border-radius:12px;background:var(--neon-dim);border:1.5px solid var(--neon);color:var(--neon);font-family:var(--font-mono);font-size:0.78rem;font-weight:700;letter-spacing:3px;cursor:pointer;transition:background 0.3s,box-shadow 0.3s}
+.btn-neon-full:hover{background:rgba(57,255,20,0.19);box-shadow:0 0 26px rgba(57,255,20,0.25)}
+.section-divider{border:none;border-top:1px solid var(--glass-border);margin:22px 0}
+
+/* ── TICKER ── */
+.ticker-bar{position:fixed;bottom:0;left:0;right:0;z-index:9998;background:rgba(0,0,0,0.95);border-top:1px solid rgba(57,255,20,0.22);padding:6px 0}
+.ticker-bar marquee{font-family:var(--font-mono);font-size:0.7rem;color:var(--neon);letter-spacing:1px}
+
+/* ── PAYMENT CELEBRATION ── */
+#payBlast{position:fixed;inset:0;z-index:99990;pointer-events:none;display:none}
+.confetti-piece{position:absolute;animation:confetti-fall linear forwards}
+@keyframes confetti-fall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(105vh) rotate(720deg)}}
+#paySuccess{position:fixed;inset:0;z-index:99991;display:none;align-items:center;justify-content:center;pointer-events:none}
+.pay-blast-card{background:var(--emerald);border:2px solid var(--neon);border-radius:28px;padding:38px 56px;text-align:center;box-shadow:0 0 80px rgba(57,255,20,0.5);animation:blast-in 0.45s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes blast-in{from{transform:scale(0.25) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.pay-blast-icon{font-size:3.8rem;animation:spin-once 0.55s 0.15s ease-out both}
+@keyframes spin-once{from{transform:rotate(-180deg) scale(0)}to{transform:rotate(0) scale(1)}}
+.pay-blast-title{font-size:1.5rem;font-weight:800;color:var(--neon);text-shadow:0 0 18px var(--neon);margin:9px 0 4px}
+.pay-blast-sub{font-family:var(--font-mono);font-size:0.68rem;color:rgba(255,255,255,0.55);letter-spacing:1px}
+</style>
+</head>
+<body>
+
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<!-- PAYMENT CELEBRATION -->
+<div id="payBlast"></div>
+<div id="paySuccess" style="display:none;align-items:center;justify-content:center">
+  <div class="pay-blast-card">
+    <div class="pay-blast-icon">✅</div>
+    <div class="pay-blast-title" id="blastTitle">PAYMENT SENT!</div>
+    <div class="pay-blast-sub" id="blastSub">Transaction complete</div>
+  </div>
+</div>
+
+<div class="rgb-strip"></div>
+<div class="bg-layer"></div>
+
+<!-- ── ONBOARDING ── -->
+<div id="onboarding">
+  <div class="onboarding-card">
+    <div class="brand-title">AGRI<span>SHIELD</span></div>
+    <div class="brand-sub" data-en="PIONEER OS — AGRICULTURAL INTELLIGENCE" data-hi="पायनियर OS — कृषि बुद्धिमत्ता">PIONEER OS — AGRICULTURAL INTELLIGENCE</div>
+    <div class="ob-lang-row">
+      <button class="ob-lang-btn active" onclick="setLang('en',this)">🇬🇧 ENGLISH</button>
+      <button class="ob-lang-btn" onclick="setLang('hi',this)">🇮🇳 हिंदी</button>
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="uName" data-en="PIONEER NAME" data-hi="किसान का नाम">PIONEER NAME</label>
+      <input id="uName" class="field-input" type="text" placeholder="Enter Full Name" autocomplete="off">
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="uLoc" data-en="GEO-SECTOR — LOCATION" data-hi="जिला, राज्य">GEO-SECTOR — LOCATION</label>
+      <input id="uLoc" class="field-input" type="text" placeholder="District, State" autocomplete="off">
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="uCrop" data-en="CROP SPECIFICATION" data-hi="फसल का नाम">CROP SPECIFICATION</label>
+      <input id="uCrop" class="field-input" type="text" placeholder="e.g. Grapes / Wheat" autocomplete="off">
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="uArea" data-en="FARM AREA (ACRES)" data-hi="खेत का क्षेत्रफल (एकड़)">FARM AREA (ACRES)</label>
+      <input id="uArea" class="field-input" type="number" placeholder="e.g. 5" autocomplete="off">
+    </div>
+    <button class="btn-launch" onclick="initOS()" data-en="◉ ENGAGE SYSTEM" data-hi="◉ प्रणाली शुरू करें">◉ ENGAGE SYSTEM</button>
+  </div>
+</div>
+
+<!-- ── NAVBAR ── -->
+<nav class="top-nav">
+  <div class="logo">AGRI<span>SHIELD</span></div>
+  <div class="nav-right">
+    <div>
+      <div id="userTag" class="session-id" data-en="SESSION: OFFLINE" data-hi="सत्र: ऑफलाइन">SESSION: OFFLINE</div>
+      <div class="sync-badge" data-en="SATELLITE SYNC: 98%" data-hi="सैटेलाइट: 98%">SATELLITE SYNC: 98%</div>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en',this)">EN</button>
+      <button class="lang-btn" onclick="setLang('hi',this)">हि</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── SPATIAL HUB ── -->
+<main class="spatial-hub">
+  <div class="monolith" onclick="openView('agentView',event)" onmouseenter="playHover()">
+    <div class="m-icon">🧑‍🌾</div>
+    <h2 class="m-title" data-en="AGENT" data-hi="एजेंट">AGENT</h2>
+    <p class="m-sub" data-en="Intelligence: Health Score, Satellite Advisor, AI Crop Guide & Task Plan." data-hi="बुद्धिमत्ता: स्वास्थ्य स्कोर, सैटेलाइट सलाह, AI फसल मार्गदर्शन।">Intelligence: Health Score, Satellite Advisor, AI Crop Guide & Task Plan.</p>
+  </div>
+  <div class="monolith" onclick="openView('financeView',event)" onmouseenter="playHover()">
+    <div class="m-icon">🏦</div>
+    <h2 class="m-title" data-en="FINANCE" data-hi="वित्त">FINANCE</h2>
+    <p class="m-sub" data-en="Banking: KCC Loans, EMI Calculator, UPI Voice Pay & DBT Subsidies." data-hi="बैंकिंग: KCC ऋण, EMI कैलकुलेटर, UPI वॉइस पेमेंट और DBT सब्सिडी।">Banking: KCC Loans, EMI Calculator, UPI Voice Pay & DBT Subsidies.</p>
+  </div>
+  <div class="monolith" onclick="openView('marketView',event)" onmouseenter="playHover()">
+    <div class="m-icon">📊</div>
+    <h2 class="m-title" data-en="MARKET" data-hi="बाज़ार">MARKET</h2>
+    <p class="m-sub" data-en="Logistics: Live Mandi, e-NAM, Futures & Direct Escrow Sales." data-hi="लॉजिस्टिक्स: लाइव मंडी, e-NAM, फ्यूचर्स और डायरेक्ट एस्क्रो बिक्री।">Logistics: Live Mandi, e-NAM, Futures & Direct Escrow Sales.</p>
+  </div>
+</main>
+
+<!-- ══════ AGENT VIEW ══════ -->
+<section id="agentView" class="full-view">
+  <button class="close-btn" onclick="closeView()">✕</button>
+  <div class="container-fluid" style="max-width:1100px">
+
+    <div class="row g-4 mb-4 align-items-center">
+      <div class="col-md-3">
+        <div class="health-ring"><div class="score">92</div><div class="score-max">/ 100</div></div>
+        <div class="health-label" data-en="🟢 EXCELLENT HEALTH" data-hi="🟢 उत्कृष्ट स्वास्थ्य">🟢 EXCELLENT HEALTH</div>
+      </div>
+      <div class="col-md-9">
+        <div class="advisor-card">
+          <div class="advisor-avatar">🧑‍🌾</div>
+          <div>
+            <div class="advisor-title">AI ADVISOR <button class="btn-listen">🔊 <span data-en="Listen" data-hi="सुनें">Listen</span></button></div>
+            <p class="advisor-msg"><span data-en="नमस्ते" data-hi="नमस्ते">नमस्ते</span> <span class="userName">User</span>! <span data-en="Your" data-hi="आपकी"></span> <span class="cropName">Crop</span> <span data-en="is thriving. Satellite shows high soil moisture — skip irrigation today. Task: Check for aphids on the North fence." data-hi="फसल अच्छी है। सैटेलाइट में मिट्टी की नमी अधिक है — आज सिंचाई न करें। कार्य: उत्तर की बाड़ पर एफिड जांचें।">is thriving. Satellite shows high soil moisture — skip irrigation today. Task: Check for aphids on the North fence.</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="glass-widget h-100">
+          <div class="widget-title" style="color:var(--sky)" data-en="🌦️ WEATHER & WATER" data-hi="🌦️ मौसम और पानी">🌦️ WEATHER & WATER</div>
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <span style="font-size:2.6rem;line-height:1">⛅</span>
+            <div class="text-end"><div class="weather-temp">31°C</div><div class="weather-desc" data-en="CLEAR SKIES" data-hi="साफ आसमान">CLEAR SKIES</div></div>
+          </div>
+          <hr class="section-divider" style="margin:9px 0">
+          <div class="widget-title" style="margin-bottom:6px" data-en="WATER NEED: LOW" data-hi="पानी की जरूरत: कम">WATER NEED: LOW</div>
+          <div class="bar-track"><div class="bar-fill" style="width:20%"></div></div>
+          <div style="margin-top:12px;font-family:var(--font-mono);font-size:0.58rem;color:rgba(255,255,255,0.32)" data-en="Rain forecast in 3 days" data-hi="3 दिन में बारिश की संभावना">Rain forecast in 3 days</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="glass-widget h-100">
+          <div class="widget-title" style="color:var(--gold)" data-en="🌿 INPUTS & PESTS" data-hi="🌿 इनपुट और कीट">🌿 INPUTS & PESTS</div>
+          <div class="alert-flash">
+            <div class="alert-title" data-en="⚠️ PEST RISK: LOW" data-hi="⚠️ कीट जोखिम: कम">⚠️ PEST RISK: LOW</div>
+            <div class="alert-sub" data-en="Aphid alert in surrounding sectors." data-hi="आस-पास के क्षेत्रों में एफिड चेतावनी।">Aphid alert in surrounding sectors.</div>
+          </div>
+          <div class="input-tags">
+            <div class="input-tag"><div class="tag-label" data-en="UREA" data-hi="यूरिया">UREA</div><div class="tag-value">8 kg</div></div>
+            <div class="input-tag"><div class="tag-label">NPK</div><div class="tag-value" data-en="Ready" data-hi="तैयार">Ready</div></div>
+            <div class="input-tag"><div class="tag-label">DAP</div><div class="tag-value">2 kg</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="glass-widget h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="widget-title" data-en="📈 PROFIT METER" data-hi="📈 लाभ मीटर">📈 PROFIT METER</div>
+            <div class="profit-row">
+              <div class="profit-cell"><div class="p-label" data-en="EST. YIELD" data-hi="अनुमानित उपज">EST. YIELD</div><div class="p-value">155 Qtl</div></div>
+              <div class="profit-cell text-end"><div class="p-label" data-en="NET PROFIT" data-hi="शुद्ध लाभ">NET PROFIT</div><div class="p-value positive">₹2.8L</div></div>
+            </div>
+          </div>
+          <button class="btn-neon-full" style="margin-top:16px" data-en="VIEW GROWTH TIMELINE" data-hi="विकास टाइमलाइन देखें">VIEW GROWTH TIMELINE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GEMINI AI CROP ADVISOR -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="gemini-panel">
+          <div class="gemini-header">
+            <div class="gemini-dot"></div>
+            <div class="gemini-label" data-en="✦ AI CROP ADVISOR — PERSONALISED SUGGESTIONS (Powered by Claude)" data-hi="✦ AI फसल सलाहकार — व्यक्तिगत सुझाव (Claude द्वारा संचालित)">✦ AI CROP ADVISOR — PERSONALISED SUGGESTIONS (Powered by Claude)</div>
+          </div>
+          <div class="gemini-messages" id="geminiMessages">
+            <div class="g-msg ai" data-en="Hello! I'm your AI Crop Advisor. Ask me about pest control, fertilizer schedule, weather impact, or market timing for your crop." data-hi="नमस्ते! मैं आपका AI फसल सलाहकार हूं। कीट नियंत्रण, उर्वरक समय या बाज़ार के बारे में पूछें।">Hello! I'm your AI Crop Advisor. Ask me about pest control, fertilizer schedule, weather impact, or market timing for your crop.</div>
+          </div>
+          <div class="gemini-input-row">
+            <input class="gemini-input" id="geminiInput" type="text" placeholder="Ask about your crop…" onkeydown="if(event.key==='Enter')sendGemini()">
+            <button class="gemini-send" onclick="sendGemini()" data-en="ASK ▶" data-hi="पूछें ▶">ASK ▶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ FINANCE VIEW ══════ -->
+<section id="financeView" class="full-view">
+  <button class="close-btn" onclick="closeView()">✕</button>
+  <div class="container-fluid" style="max-width:1100px">
+    <h1 class="section-title" style="color:var(--gold)" data-en="Financial Matrix" data-hi="वित्तीय मैट्रिक्स">Financial Matrix</h1>
+    <div class="mini-stats">
+      <div class="mini-stat"><div class="ms-val" style="color:var(--neon)">₹1.2L</div><div class="ms-label" data-en="TOTAL CREDITED" data-hi="कुल जमा">TOTAL CREDITED</div></div>
+      <div class="mini-stat"><div class="ms-val" style="color:var(--sky)">₹40K</div><div class="ms-label" data-en="PENDING SUBSIDY" data-hi="लंबित सब्सिडी">PENDING SUBSIDY</div></div>
+      <div class="mini-stat"><div class="ms-val" style="color:var(--gold)">₹3.2L</div><div class="ms-label" data-en="CREDIT LIMIT" data-hi="क्रेडिट सीमा">CREDIT LIMIT</div></div>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-8">
+        <!-- KCC -->
+        <div class="glass-widget mb-4">
+          <div class="widget-title" style="color:var(--gold)" data-en="💳 DIGITAL KCC & LOANS" data-hi="💳 डिजिटल KCC और ऋण">💳 DIGITAL KCC & LOANS</div>
+          <table class="data-table">
+            <thead><tr>
+              <th data-en="PROVIDER" data-hi="प्रदाता">PROVIDER</th>
+              <th data-en="RATE" data-hi="दर">RATE</th>
+              <th data-en="LIMIT" data-hi="सीमा">LIMIT</th>
+              <th data-en="TENURE" data-hi="अवधि">TENURE</th>
+              <th data-en="ACTION" data-hi="कार्रवाई">ACTION</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>SBI Agri</td><td>4.0%</td><td>₹3.0L</td><td>12 mo</td><td><button class="btn-table" data-en="APPLY" data-hi="आवेदन">APPLY</button></td></tr>
+              <tr class="row-highlight"><td>AgriShield Cap ⭐</td><td>3.2%</td><td>₹5.0L</td><td>18 mo</td><td><button class="btn-table dark" data-en="APPLY" data-hi="आवेदन">APPLY</button></td></tr>
+              <tr><td>NABARD Rural</td><td>3.8%</td><td>₹2.5L</td><td>12 mo</td><td><button class="btn-table" data-en="APPLY" data-hi="आवेदन">APPLY</button></td></tr>
+            </tbody>
+          </table>
+          <div class="emi-calc">
+            <div class="emi-title" data-en="🧮 EMI CALCULATOR" data-hi="🧮 EMI कैलकुलेटर">🧮 EMI CALCULATOR</div>
+            <div class="emi-row">
+              <div class="emi-field"><label data-en="AMOUNT (₹)" data-hi="राशि (₹)">AMOUNT (₹)</label><input id="emiAmt" type="number" placeholder="100000"></div>
+              <div class="emi-field"><label data-en="RATE (%/yr)" data-hi="दर (%/वर्ष)">RATE (%/yr)</label><input id="emiRate" type="number" placeholder="4.0"></div>
+              <div class="emi-field"><label data-en="MONTHS" data-hi="महीने">MONTHS</label><input id="emiMonths" type="number" placeholder="12"></div>
+              <button class="emi-calc-btn" onclick="calcEMI()" data-en="CALC" data-hi="गणना">CALC</button>
+            </div>
+            <div class="emi-result" id="emiResult"></div>
+          </div>
+        </div>
+        <!-- DBT -->
+        <div class="glass-widget mb-4">
+          <div class="widget-title" style="color:var(--sky)" data-en="💰 DBT SUBSIDY TRACKING" data-hi="💰 DBT सब्सिडी ट्रैकिंग">💰 DBT SUBSIDY TRACKING</div>
+          <div class="status-row"><span data-en="PM-KISAN Installment" data-hi="PM-KISAN किस्त">PM-KISAN Installment</span><span class="status-badge green" data-en="CREDITED" data-hi="जमा">CREDITED</span></div>
+          <div class="status-row"><span data-en="Fertilizer Subsidy" data-hi="उर्वरक सब्सिडी">Fertilizer Subsidy</span><span class="status-badge blue" data-en="ACTIVE" data-hi="सक्रिय">ACTIVE</span></div>
+          <div class="status-row"><span data-en="Soil Health Card Bonus" data-hi="मृदा स्वास्थ्य कार्ड बोनस">Soil Health Card Bonus</span><span class="status-badge orange" data-en="PENDING" data-hi="लंबित">PENDING</span></div>
+        </div>
+        <!-- Insurance -->
+        <div class="glass-widget">
+          <div class="widget-title" style="color:var(--neon)" data-en="🛡️ INSURANCE SERVICES" data-hi="🛡️ बीमा सेवाएं">🛡️ INSURANCE SERVICES</div>
+          <div class="status-row"><span data-en="PMFBY Crop Insurance" data-hi="PMFBY फसल बीमा">PMFBY Crop Insurance</span><span class="status-badge green" data-en="ACTIVE" data-hi="सक्रिय">ACTIVE</span></div>
+          <div class="status-row"><span data-en="Natural Calamity Cover" data-hi="प्राकृतिक आपदा कवर">Natural Calamity Cover</span><span class="status-badge green" data-en="CREDITED" data-hi="जमा">CREDITED</span></div>
+          <div class="status-row"><span data-en="Life Insurance (PMJJBY)" data-hi="जीवन बीमा (PMJJBY)">Life Insurance (PMJJBY)</span><span class="status-badge blue" data-en="ACTIVE" data-hi="सक्रिय">ACTIVE</span></div>
+          <div class="status-row"><span data-en="Accident Insurance (PMSBY)" data-hi="दुर्घटना बीमा (PMSBY)">Accident Insurance (PMSBY)</span><span class="status-badge blue" data-en="ACTIVE" data-hi="सक्रिय">ACTIVE</span></div>
+        </div>
+      </div>
+      <!-- Voice Payment -->
+      <div class="col-md-4">
+        <div class="glass-widget h-100 voice-panel">
+          <div class="widget-title" style="color:var(--sky)" data-en="🔊 VOICE UPI PAYMENT" data-hi="🔊 वॉइस UPI पेमेंट">🔊 VOICE UPI PAYMENT</div>
+          <p class="voice-sub">
+            <span data-en='"Pay rupees 230 to Sachin of account number 9876543210"' data-hi='"230 रुपये Sachin को account number 9876543210 पर दो"'>"Pay rupees 230 to Sachin of account number 9876543210"</span><br>
+            <span style="opacity:0.45;font-size:0.68rem" data-en='or: "Pay 230 rupees to…"' data-hi='या: "230 रुपये Sachin को…"'>or: "Pay 230 rupees to…"</span>
+          </p>
+          <div id="waveWrap" style="display:none;margin-bottom:11px;border-radius:12px;overflow:hidden;background:rgba(0,0,0,0.35);border:1px solid rgba(57,255,20,0.2);padding:5px 3px">
+            <canvas id="waveCanvas" height="58" style="width:100%;display:block"></canvas>
+          </div>
+          <button id="recordBtn" class="btn-voice" onclick="startVoice()" data-en="🎤 TAP TO SPEAK" data-hi="🎤 बोलने के लिए दबाएं">🎤 TAP TO SPEAK</button>
+          <div id="voiceResult" class="voice-result" data-en="Awaiting voice input…" data-hi="आवाज़ का इंतज़ार…">Awaiting voice input…</div>
+          <div style="margin-top:16px">
+            <div class="widget-title" style="color:rgba(255,255,255,0.35);margin-bottom:9px" data-en="RECENT TRANSACTIONS" data-hi="हाल के लेन-देन">RECENT TRANSACTIONS</div>
+            <div class="status-row" style="font-size:0.73rem"><span>Ramesh Seeds</span><span class="status-badge green">₹1,200</span></div>
+            <div class="status-row" style="font-size:0.73rem"><span>AgriMart</span><span class="status-badge blue">₹3,500</span></div>
+            <div class="status-row" style="font-size:0.73rem"><span>FertilizerHub</span><span class="status-badge orange">₹800</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════ MARKET VIEW ══════ -->
+<section id="marketView" class="full-view">
+  <button class="close-btn" onclick="closeView()">✕</button>
+  <div class="container-fluid" style="max-width:1100px">
+    <h1 class="section-title" style="color:var(--sky)" data-en="Market Gateway" data-hi="बाज़ार गेटवे">Market Gateway</h1>
+    <div class="row g-4">
+      <div class="col-md-7">
+        <div class="glass-widget mb-4">
+          <div class="widget-title" style="color:var(--sky)" data-en="🧺 LIVE MANDI ARBITRAGE" data-hi="🧺 लाइव मंडी अरबिट्राज">🧺 LIVE MANDI ARBITRAGE</div>
+          <div class="mandi-row"><div><div class="mandi-name" data-en="Mandi A" data-hi="मंडी A">Mandi A</div><div class="mandi-dist" data-en="10 km away" data-hi="10 किमी दूर">10 km away</div></div><div class="mandi-price">₹4,100</div></div>
+          <div class="mandi-row"><div><div class="mandi-name" data-en="Mandi B · Best Price ⭐" data-hi="मंडी B · सर्वोत्तम मूल्य ⭐">Mandi B · Best Price ⭐</div><div class="mandi-dist" data-en="25 km away" data-hi="25 किमी दूर">25 km away</div></div><div class="mandi-price best">₹4,350</div></div>
+          <div class="mandi-row"><div><div class="mandi-name">e-NAM Global</div><div class="mandi-dist" data-en="Online Exchange" data-hi="ऑनलाइन एक्सचेंज">Online Exchange</div></div><div class="mandi-price">₹4,280</div></div>
+          <div class="mandi-row"><div><div class="mandi-name" data-en="Mandi C" data-hi="मंडी C">Mandi C</div><div class="mandi-dist" data-en="40 km away" data-hi="40 किमी दूर">40 km away</div></div><div class="mandi-price">₹4,050</div></div>
+        </div>
+        <div class="glass-widget">
+          <div class="widget-title" style="color:var(--gold)" data-en="📉 FUTURES & PRICE FORECAST" data-hi="📉 फ्यूचर्स और मूल्य पूर्वानुमान">📉 FUTURES & PRICE FORECAST</div>
+          <div class="mini-stats">
+            <div class="mini-stat"><div class="ms-val" style="color:var(--neon)">+₹180</div><div class="ms-label" data-en="7-DAY FORECAST" data-hi="7-दिन पूर्वानुमान">7-DAY FORECAST</div></div>
+            <div class="mini-stat"><div class="ms-val" style="color:var(--gold)">HIGH</div><div class="ms-label" data-en="DEMAND INDEX" data-hi="मांग सूचकांक">DEMAND INDEX</div></div>
+            <div class="mini-stat"><div class="ms-val" style="color:var(--sky)">4,520</div><div class="ms-label" data-en="30-DAY TARGET" data-hi="30-दिन लक्ष्य">30-DAY TARGET</div></div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:0.6rem;color:rgba(255,255,255,0.3);margin-top:6px" data-en="💡 AI Rec: Hold stock 7–10 days for maximum price." data-hi="💡 AI सुझाव: अधिकतम लाभ के लिए 7–10 दिन स्टॉक रोकें।">💡 AI Rec: Hold stock 7–10 days for maximum price.</div>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="glass-widget mb-4" style="text-align:center">
+          <div class="widget-title" style="color:var(--neon)" data-en="🤝 DIRECT ESCROW SALE" data-hi="🤝 डायरेक्ट एस्क्रो बिक्री">🤝 DIRECT ESCROW SALE</div>
+          <div style="font-size:2.8rem;margin-bottom:13px">🔒</div>
+          <p class="escrow-desc" data-en="Secure your price now. Payment released upon pickup. Zero middleman." data-hi="अभी कीमत तय करें। पिकअप पर भुगतान। कोई बिचौलिया नहीं।">Secure your price now. Payment released upon pickup. Zero middleman.</p>
+          <button class="btn-neon-full" data-en="SELL DIRECT" data-hi="सीधे बेचें">SELL DIRECT</button>
+        </div>
+        <div class="glass-widget">
+          <div class="widget-title" style="color:var(--sky)" data-en="🚚 TRANSPORT BOOKING" data-hi="🚚 परिवहन बुकिंग">🚚 TRANSPORT BOOKING</div>
+          <div class="status-row"><span data-en="Mini Truck (2T)" data-hi="मिनी ट्रक (2T)">Mini Truck (2T)</span><button class="btn-table" style="font-size:0.6rem" data-en="BOOK" data-hi="बुक">BOOK</button></div>
+          <div class="status-row"><span data-en="Tractor Trolley" data-hi="ट्रैक्टर ट्रॉली">Tractor Trolley</span><button class="btn-table" style="font-size:0.6rem" data-en="BOOK" data-hi="बुक">BOOK</button></div>
+          <div class="status-row"><span data-en="Cold Storage — 3km" data-hi="कोल्ड स्टोरेज — 3 किमी">Cold Storage — 3km</span><button class="btn-table" style="font-size:0.6rem" data-en="BOOK" data-hi="बुक">BOOK</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-bar">
+  <marquee scrollamount="5" id="tickerText">🌾 Mandi Update: Grapes Up ₹150 &nbsp;|&nbsp; Wheat Steady ₹2,800 &nbsp;|&nbsp; 🌦️ Rain expected in Nashik tomorrow &nbsp;|&nbsp; 💰 KCC Rate Dropped to 3.2% &nbsp;|&nbsp; 📡 Satellite Sync Active &nbsp;|&nbsp; 📈 Soybean Futures +₹200 this week</marquee>
+</div>
+
+<script>
+/* ══ LANGUAGE SYSTEM ══ */
+let currentLang = 'en';
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn,.ob-lang-btn').forEach(b => {
+    const isHi = b.textContent.includes('हि') || b.textContent.includes('हिंदी');
+    b.classList.toggle('active', lang==='hi' ? isHi : !isHi);
+  });
+  document.querySelectorAll('[data-en]').forEach(el => {
+    el.textContent = lang==='hi' ? (el.getAttribute('data-hi')||el.getAttribute('data-en')) : el.getAttribute('data-en');
+  });
+  const phs = {uName:{en:'Enter Full Name',hi:'पूरा नाम'},uLoc:{en:'District, State',hi:'जिला, राज्य'},uCrop:{en:'e.g. Grapes / Wheat',hi:'उदा. अंगूर / गेहूं'},uArea:{en:'e.g. 5',hi:'उदा. 5'},geminiInput:{en:'Ask about your crop…',hi:'अपनी फसल के बारे में पूछें…'}};
+  Object.entries(phs).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.placeholder=lang==='hi'?v.hi:v.en;});
+  const vr=document.getElementById('voiceResult');
+  if(vr&&(vr.dataset.defaultShown!=='used'))vr.textContent=lang==='hi'?'आवाज़ का इंतज़ार…':'Awaiting voice input…';
+  document.getElementById('tickerText').innerHTML = lang==='hi'
+    ? '🌾 मंडी अपडेट: अंगूर ₹150 ऊपर &nbsp;|&nbsp; गेहूं स्थिर ₹2,800 &nbsp;|&nbsp; 🌦️ कल नाशिक में बारिश &nbsp;|&nbsp; 💰 KCC दर 3.2% &nbsp;|&nbsp; 📡 सैटेलाइट सिंक सक्रिय &nbsp;|&nbsp; 📈 सोयाबीन फ्यूचर्स +₹200'
+    : '🌾 Mandi Update: Grapes Up ₹150 &nbsp;|&nbsp; Wheat Steady ₹2,800 &nbsp;|&nbsp; 🌦️ Rain expected in Nashik tomorrow &nbsp;|&nbsp; 💰 KCC Rate 3.2% &nbsp;|&nbsp; 📡 Satellite Sync Active &nbsp;|&nbsp; 📈 Soybean Futures +₹200';
+  playClick();
+}
+
+/* ══ AUDIO ENGINE ══ */
+let AC;
+try { AC = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){}
+function beep(freq=440,type='sine',dur=0.12,vol=0.16,delay=0) {
+  if(!AC) return;
+  try {
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.connect(g);g.connect(AC.destination);
+    o.type=type;o.frequency.setValueAtTime(freq,AC.currentTime+delay);
+    g.gain.setValueAtTime(vol,AC.currentTime+delay);
+    g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+delay+dur);
+    o.start(AC.currentTime+delay);o.stop(AC.currentTime+delay+dur+0.05);
+  } catch(e){}
+}
+function playHover(){beep(880,'sine',0.055,0.07)}
+function playClick(){beep(660,'sine',0.075,0.11)}
+function playPaymentSuccess(){
+  [523,659,784,1047].forEach((f,i)=>beep(f,'sine',0.16,0.2,i*0.1));
+  setTimeout(()=>beep(1047,'sine',0.35,0.22),480);
+}
+
+/* ══ CUSTOM CURSOR ══ */
+const dot=document.getElementById('cursor-dot'),ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  dot.style.left=mx+'px';dot.style.top=my+'px';
+  const t=document.createElement('div');
+  t.className='trail-dot';
+  t.style.cssText=`left:${mx}px;top:${my}px;width:5px;height:5px`;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),560);
+});
+(function animRing(){rx+=(mx-rx)*0.11;ry+=(my-ry)*0.11;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing);})();
+document.addEventListener('mouseover',e=>{
+  if(e.target.closest('button,a,.monolith,.close-btn,.btn-table,.btn-voice,.btn-neon-full,.btn-launch,.gemini-send,.emi-calc-btn'))ring.classList.add('hover');
+  else ring.classList.remove('hover');
+});
+
+/* ══ ONBOARDING ══ */
+function initOS(){
+  const name=document.getElementById('uName').value.trim();
+  const loc=document.getElementById('uLoc').value.trim();
+  const crop=document.getElementById('uCrop').value.trim()||'Crop';
+  const area=document.getElementById('uArea').value.trim()||'?';
+  if(!name||!loc){alert(currentLang==='hi'?'नाम और स्थान आवश्यक है।':'Name and Location required.');return;}
+  document.getElementById('userTag').textContent=`ID: ${name.split(' ')[0].toUpperCase()} | ${loc.toUpperCase()}`;
+  document.querySelectorAll('.userName').forEach(e=>e.textContent=name);
+  document.querySelectorAll('.cropName').forEach(e=>e.textContent=crop);
+  const greeting=currentLang==='hi'
+    ?`नमस्ते ${name}! आपकी ${crop} फसल (${area} एकड़) के लिए मैं यहाँ हूं। कोई भी सवाल पूछें!`
+    :`Hello ${name}! Ready to assist with your ${crop} crop (${area} acres). What would you like to know?`;
+  const box=document.getElementById('geminiMessages');
+  box.innerHTML='';
+  const d=document.createElement('div');d.className='g-msg ai';d.textContent=greeting;box.appendChild(d);
+  document.getElementById('onboarding').style.transform='translateY(-100%)';
+  playClick();
+}
+
+/* ══ VIEWS ══ */
+function openView(id,e){
+  if(e){
+    const mono=e.currentTarget,r=document.createElement('span');
+    const rect=mono.getBoundingClientRect(),size=Math.max(rect.width,rect.height)*2;
+    r.className='ripple-fx';
+    r.style.cssText=`width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+    mono.appendChild(r);setTimeout(()=>r.remove(),700);
+  }
+  playClick();
+  document.getElementById(id).style.display='block';
+}
+function closeView(){playClick();document.querySelectorAll('.full-view').forEach(v=>v.style.display='none');}
+
+/* ══ EMI CALCULATOR ══ */
+function calcEMI(){
+  const P=parseFloat(document.getElementById('emiAmt').value);
+  const r=parseFloat(document.getElementById('emiRate').value)/12/100;
+  const n=parseInt(document.getElementById('emiMonths').value);
+  const out=document.getElementById('emiResult');
+  if(!P||!r||!n){out.textContent=currentLang==='hi'?'कृपया सभी फ़ील्ड भरें।':'Please fill all fields.';return;}
+  const emi=P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  out.textContent=currentLang==='hi'
+    ?`मासिक EMI: ₹${emi.toFixed(0)} | कुल ब्याज: ₹${(emi*n-P).toFixed(0)}`
+    :`Monthly EMI: ₹${emi.toFixed(0)} | Total Interest: ₹${(emi*n-P).toFixed(0)}`;
+  playClick();
+}
+
+/* ══ GEMINI / AI ADVISOR ══ */
+let geminiHistory=[];
+function addGeminiMsg(text,role){
+  const box=document.getElementById('geminiMessages');
+  const d=document.createElement('div');d.className=`g-msg ${role}`;d.textContent=text;
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
+  if(role!=='typing')geminiHistory.push({role:role==='user'?'user':'assistant',content:text});
+  return d;
+}
+async function sendGemini(){
+  const input=document.getElementById('geminiInput');
+  const q=input.value.trim();if(!q)return;input.value='';
+  const crop=document.querySelector('.cropName')?.textContent||'crop';
+  addGeminiMsg(q,'user');playClick();
+  const typing=addGeminiMsg(currentLang==='hi'?'सोच रहा हूँ…':'Thinking…','typing');
+  const sys=currentLang==='hi'
+    ?`आप AgriShield के AI कृषि सलाहकार हैं। किसान की फसल: ${crop}। हिंदी में संक्षिप्त, व्यावहारिक उत्तर दें (2-3 वाक्य)।`
+    :`You are AgriShield's AI crop advisor for Indian farmers. Farmer's crop: ${crop}. Give concise, actionable advice in 2-3 sentences. Be specific and practical.`;
+  try {
+    const msgs=[...geminiHistory.slice(-8).filter(m=>m.role==='user'||m.role==='assistant'),{role:'user',content:q}];
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:msgs})});
+    const data=await res.json();
+    typing.remove();
+    const reply=data.content?.[0]?.text||(currentLang==='hi'?'जवाब नहीं मिला।':'No response received.');
+    addGeminiMsg(reply,'ai');
+    beep(880,'sine',0.055,0.09);
+  } catch(err){typing.remove();addGeminiMsg(currentLang==='hi'?'नेटवर्क त्रुटि।':'Network error. Please try again.','ai');}
+}
+
+/* ══ VOICE PAYMENT ══ */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let recognition=null,audioCtx2=null,analyser=null,micStream=null,waveRAF=null,isListening=false;
+
+function parsePayment(text){
+  const patA=/pay\s+(?:rupees?|rs\.?)\s+(\d[\d\s]*)\s+to\s+([a-z]+(?:\s+[a-z]+)?)(?:\s+of\s+account\s+(?:number\s+)?(\d[\d\s]*))?/i;
+  const patB=/pay\s+(\d[\d\s]*)\s+(?:rupees?|rs\.?)\s+to\s+([a-z]+(?:\s+[a-z]+)?)(?:\s+of\s+account\s+(?:number\s+)?(\d[\d\s]*))?/i;
+  const m=text.match(patA)||text.match(patB);
+  if(!m)return null;
+  return{amount:m[1].replace(/\s/g,''),name:m[2].trim().replace(/\b\w/g,c=>c.toUpperCase()),acno:m[3]?m[3].replace(/\s/g,''):null};
+}
+
+function startVoice(){
+  if(isListening)return;
+  const btn=document.getElementById('recordBtn'),result=document.getElementById('voiceResult');
+  if(!SR){result.innerHTML=`<span class="pay-error">Browser doesn't support speech. Use Chrome.</span>`;return;}
+  isListening=true;
+  btn.textContent=currentLang==='hi'?'🔴 सुन रहा हूँ…':'🔴 LISTENING…';
+  btn.classList.add('listening');
+  result.dataset.defaultShown='used';
+  result.innerHTML=`<span style="color:rgba(255,255,255,0.36)">${currentLang==='hi'?'बोलें…':'Listening… speak now.'}</span>`;
+
+  navigator.mediaDevices.getUserMedia({audio:true,video:false}).then(stream=>{
+    micStream=stream;
+    audioCtx2=new (window.AudioContext||window.webkitAudioContext)();
+    const src=audioCtx2.createMediaStreamSource(stream);
+    analyser=audioCtx2.createAnalyser();analyser.fftSize=256;
+    src.connect(analyser);startWaveform();
+  }).catch(()=>{});
+
+  recognition=new SR();recognition.lang='en-IN';recognition.interimResults=false;recognition.maxAlternatives=3;
+  recognition.onresult=e=>{
+    let parsed=null,spokenText='';
+    for(let i=0;i<e.results[0].length;i++){spokenText=e.results[0][i].transcript;parsed=parsePayment(spokenText);if(parsed)break;}
+    if(parsed){
+      const acLine=parsed.acno
+        ?`<div class="pay-success">🏦 ${currentLang==='hi'?'खाता':'ACCOUNT'}: ${parsed.acno}</div>`
+        :`<div style="color:rgba(255,255,255,0.28);font-size:0.65rem">${currentLang==='hi'?'खाता नंबर नहीं मिला':'No account number detected'}</div>`;
+      result.innerHTML=`<div class="transcript">${currentLang==='hi'?'आपने कहा':'You said'}: "${spokenText}"</div>
+        <div class="pay-success">✅ ${currentLang==='hi'?'भुगतान':'PAID TO'}: ${parsed.name}</div>
+        <div class="pay-success">💰 ${currentLang==='hi'?'राशि':'AMOUNT'}: ₹${parsed.amount}</div>${acLine}`;
+      triggerPaymentBlast(parsed);
+    } else {
+      result.innerHTML=`<div class="transcript">${currentLang==='hi'?'आपने कहा':'You said'}: "${spokenText}"</div>
+        <div class="pay-error">⚠ ${currentLang==='hi'?'समझ नहीं आया। उदाहरण देखें।':'Could not parse. Try: "Pay 230 rupees to Sachin of account number 9876"'}</div>`;
+    }
+    stopVoice();
+  };
+  recognition.onspeechend=()=>stopVoice();
+  recognition.onerror=e=>{result.innerHTML=`<span class="pay-error">Mic error: ${e.error}</span>`;stopVoice();};
+  recognition.onend=()=>{if(isListening)stopVoice();};
+  recognition.start();
+}
+
+function stopVoice(){
+  isListening=false;
+  try{recognition&&recognition.stop();}catch(e){}
+  stopWaveform();
+  if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}
+  if(audioCtx2){audioCtx2.close();audioCtx2=null;analyser=null;}
+  const btn=document.getElementById('recordBtn');
+  btn.textContent=currentLang==='hi'?'🎤 बोलने के लिए दबाएं':'🎤 TAP TO SPEAK';
+  btn.classList.remove('listening');
+}
+
+/* ── WAVEFORM ── */
+function startWaveform(){
+  const wrap=document.getElementById('waveWrap'),canvas=document.getElementById('waveCanvas');
+  wrap.style.display='block';canvas.width=canvas.offsetWidth||270;canvas.height=58;
+  const ctx=canvas.getContext('2d'),buf=new Uint8Array(analyser.frequencyBinCount);
+  const W=canvas.width,H=canvas.height,bars=42,gap=2,bw=(W-gap*(bars-1))/bars;
+  function draw(){
+    waveRAF=requestAnimationFrame(draw);analyser.getByteFrequencyData(buf);
+    ctx.clearRect(0,0,W,H);
+    for(let i=0;i<bars;i++){
+      const idx=Math.floor((i/bars)*(analyser.frequencyBinCount*0.55));
+      const val=buf[idx]/255,barH=Math.max(3,val*H),x=i*(bw+gap),y=(H-barH)/2;
+      ctx.shadowBlur=val>0.32?11:0;ctx.shadowColor='rgba(57,255,20,0.7)';
+      ctx.fillStyle=`rgba(${Math.round(val*13)},${Math.round(180+val*75)},${Math.round(val*240)},${0.5+val*0.5})`;
+      ctx.beginPath();ctx.roundRect(x,y,bw,barH,bw/2);ctx.fill();
+    }
+  }
+  draw();
+}
+function stopWaveform(){
+  if(waveRAF){cancelAnimationFrame(waveRAF);waveRAF=null;}
+  document.getElementById('waveWrap').style.display='none';
+  const c=document.getElementById('waveCanvas');c.getContext('2d').clearRect(0,0,c.width,c.height);
+}
+
+/* ══ PAYMENT BLAST ══ */
+function triggerPaymentBlast(parsed){
+  playPaymentSuccess();
+  const overlay=document.getElementById('paySuccess');
+  document.getElementById('blastTitle').textContent=currentLang==='hi'
+    ?`✅ ₹${parsed.amount} ${parsed.name} को भेजा!`
+    :`✅ ₹${parsed.amount} SENT TO ${parsed.name.toUpperCase()}!`;
+  document.getElementById('blastSub').textContent=currentLang==='hi'
+    ?'लेन-देन सफल • AgriShield सुरक्षित'
+    :'Transaction Complete • AgriShield Secured';
+  overlay.style.display='flex';
+  const blast=document.getElementById('payBlast');blast.style.display='block';
+  const cols=['#39FF14','#0dcaf0','#ffc107','#ff3131','#fff','#00ffff','#ff9900'];
+  for(let i=0;i<90;i++){
+    const c=document.createElement('div');c.className='confetti-piece';
+    const sz=Math.random()*9+5;
+    c.style.cssText=`left:${Math.random()*100}vw;top:-18px;width:${sz}px;height:${sz}px;background:${cols[Math.floor(Math.random()*cols.length)]};border-radius:${Math.random()>0.5?'50%':'2px'};animation-delay:${Math.random()*0.4}s;animation-duration:${1.1+Math.random()*0.9}s`;
+    blast.appendChild(c);
+  }
+  setTimeout(()=>{overlay.style.display='none';blast.style.display='none';blast.innerHTML='';},3200);
+}
+</script>
+</body>
+</html>
